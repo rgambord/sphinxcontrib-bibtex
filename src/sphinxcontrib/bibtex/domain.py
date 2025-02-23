@@ -301,12 +301,8 @@ class BibtexDomain(Domain):
         if env.app.config.bibtex_bibfiles is None:
             raise ExtensionError("You must configure the bibtex_bibfiles setting")
         # update bib file information in the cache
-        bibfiles = [
-            normpath_filename(env, "/" + bibfile)
-            for bibfile in env.app.config.bibtex_bibfiles
-        ]
         self.data["bibdata"] = process_bibdata(
-            self.bibdata, bibfiles, env.app.config.bibtex_encoding
+            self.bibdata, env.app.config.bibtex_bibfiles, env.app.config.bibtex_encoding
         )
         # parse bibliography header
         header = getattr(env.app.config, "bibtex_bibliography_header")
