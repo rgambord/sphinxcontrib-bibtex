@@ -1,12 +1,12 @@
 """
-    Classes and methods to maintain any bibtex information that is stored
-    outside the doctree.
+Classes and methods to maintain any bibtex information that is stored
+outside the doctree.
 
-    .. autoclass:: Citation
-        :members:
+.. autoclass:: Citation
+    :members:
 
-    .. autoclass:: BibtexDomain
-        :members:
+.. autoclass:: BibtexDomain
+    :members:
 """
 
 import ast
@@ -22,6 +22,7 @@ from typing import (
     Tuple,
     cast,
 )
+from pathlib import Path
 
 import docutils.frontend
 import docutils.nodes
@@ -67,7 +68,6 @@ def _raise_invalid_node(node):
 
 
 class _FilterVisitor(ast.NodeVisitor):
-
     """Visit the abstract syntax tree of a parsed filter expression."""
 
     entry = None
@@ -301,8 +301,11 @@ class BibtexDomain(Domain):
         if env.app.config.bibtex_bibfiles is None:
             raise ExtensionError("You must configure the bibtex_bibfiles setting")
         # update bib file information in the cache
+        confdir = Path(env.app.confdir)
+        bibfiles = [str((confdir / p).resolve()) for p in env.app.config.bibtex_bibfiles]
+
         self.data["bibdata"] = process_bibdata(
-            self.bibdata, env.app.config.bibtex_bibfiles, env.app.config.bibtex_encoding
+            self.bibdata, bibfiles, env.app.config.bibtex_encoding
         )
         # parse bibliography header
         header = getattr(env.app.config, "bibtex_bibliography_header")
@@ -577,9 +580,11 @@ class BibtexDomain(Domain):
                 yield (
                     entry,
                     style.format_entry(bibliography.labelprefix + label, entry),
-                    style2.format_entry(bibliography.labelprefix + label, entry)
-                    if style2
-                    else None,
+                    (
+                        style2.format_entry(bibliography.labelprefix + label, entry)
+                        if style2
+                        else None
+                    ),
                 )
             except FieldIsMissing as exc:
                 logger.warning(
